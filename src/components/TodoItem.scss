@@ -1,0 +1,103 @@
+// TodoItem.scss
+
+$gray: var(--gray);
+$bg-hover: #fff3eb;
+$CheckActiveIcon:'../assets/images/check-active.svg';
+$CheckCircleIcon:'../assets/images/check-circle.svg';
+$CheckHoverIcon:'../assets/images/check-hover.svg';
+
+.TodoItem {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  word-wrap: break-word;
+  word-break: break-word;
+  padding: 0 12px;
+  box-shadow: 0 17px 0 -16px #e5e5e5;
+  flex-wrap: wrap;
+
+  & .task-item-body-input {
+    user-select: none;
+    display: none;
+    flex: 1;
+    padding: 8px 0;
+    border: 0;
+    outline: 0;
+    font-size: 1rem;
+
+    &::placeholder {
+      color: $gray;
+      font-size: 13px;
+    }
+  }
+
+  &:hover {
+    background: $bg-hover;
+    box-shadow: inset 0 0 0 1px $bg-hover;
+
+    .task-item-action .btn-destroy {
+      display: inline-flex;
+    }
+  }
+
+  &.done {
+    .task-item-body {
+      color: $gray;
+      text-decoration: line-through;
+    }
+
+    .icon-checked {
+      background-image: url($CheckActiveIcon);
+    }
+  }
+
+  &.edit {
+    .task-item-body-input {
+      display: block;
+    }
+    .task-item-body-text {
+      display: none;
+    }
+    .task-item-action {
+      display: none;
+    }
+  }
+
+  .task-item-checked {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .task-item-body {
+    font-weight: 400;
+    padding: 8px 12px;
+    flex: 1;
+    display: flex;
+  }
+
+  .task-item-action {
+    .btn-destroy {
+      display: none;
+      font-size: 30px;
+      transition: color 0.2s ease-out;
+      font-weight: 300;
+
+      &:after {
+        content: '×';
+      }
+    }
+  }
+
+  .icon-checked {
+    background-image: url($CheckCircleIcon);
+    background-position: center;
+    background-repeat: no-repeat;
+
+    &:hover {
+      transition: background-image 0.5s;
+      background-image: url($CheckHoverIcon);
+    }
+  }
+}
