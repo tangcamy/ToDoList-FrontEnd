@@ -1,25 +1,40 @@
 import { Footer, Header, TodoCollection, TodoInput } from 'components';
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { getTodos, createTodo, patchTodo, deleteTodo } from 'api/todos';
+import { useState, useEffect } from 'react';
+import { createTodo, patchTodo, deleteTodo } from 'api/todos';
+import { checkPermission } from 'api/auth';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from 'contexts/AuthContext';
 
 const TodoPage = () => {
   //todo頁面接收todoinput的value，並更新最新的值
   const [inputValue, setInputValue] = useState('');
   const [todos, setTodos] = useState([]);
-
+  const navigate = useNavigate(); //引用元件
+  const { isAuthenticated } = useAuth();
   //API-GetTodo
   useEffect(() => {
-    const getTodosAsync = async () => {
-      try {
-        const todos = await getTodos();
-        setTodos(todos.map((todo) => ({ ...todo, isEdit: false })));
-      } catch (error) {
-        console.error(error);
+    if (isAuthenticated) {
+      navigate('/login');
+    }
+  }, [navigate, isAuthenticated]);
+
+  //Header加入頁面驗證資訊
+  useEffect(() => {
+    const CheckTokenIsValid = async () => {
+      const authToken = localStorage.getItem('authToken');
+      console.log('todo', authToken);
+      //假如沒有的話，引導到login
+      if (!authToken) {
+        navigate('/login');
+      }
+      //因為這邊沒有登入，所以不會有驗證的結果，因此導引到login頁面
+      const result = await checkPermission(authToken);
+      if (!result) {
+        navigate('/login');
       }
     };
-    getTodosAsync();
-  }, []);
+    CheckTokenIsValid();
+  }, [navigate]);
 
   //TodoInput
   // 監聽input onchange狀態（TodoInput中的onChange觸發，更新父組件的狀態
@@ -126,7 +141,7 @@ const TodoPage = () => {
 
   const handleOnDelete = async ({ id }) => {
     try {
-      await deleteTodo(id);//資料庫已經刪除
+      await deleteTodo(id); //資料庫已經刪除
       //如下是為了渲染畫面
       setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     } catch (error) {
