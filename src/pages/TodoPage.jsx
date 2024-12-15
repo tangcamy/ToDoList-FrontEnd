@@ -1,84 +1,82 @@
 import { Footer, Header, TodoCollection, TodoInput } from 'components';
-import { useState, useEffect } from 'react';
-import { createTodo, patchTodo, deleteTodo } from 'api/todos';
-import { checkPermission } from 'api/auth';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import { getTodos, createTodo, patchTodo, deleteTodo } from '../api/todos';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'contexts/AuthContext';
 
 const TodoPage = () => {
-  //todo頁面接收todoinput的value，並更新最新的值
   const [inputValue, setInputValue] = useState('');
   const [todos, setTodos] = useState([]);
-  const navigate = useNavigate(); //引用元件
-  const { isAuthenticated } = useAuth();
-  //API-GetTodo
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/login');
-    }
-  }, [navigate, isAuthenticated]);
+  const navigate = useNavigate();
+  const { isAuthenticated, currentMember } = useAuth();
 
-  //Header加入頁面驗證資訊
-  useEffect(() => {
-    const CheckTokenIsValid = async () => {
-      const authToken = localStorage.getItem('authToken');
-      console.log('todo', authToken);
-      //假如沒有的話，引導到login
-      if (!authToken) {
-        navigate('/login');
-      }
-      //因為這邊沒有登入，所以不會有驗證的結果，因此導引到login頁面
-      const result = await checkPermission(authToken);
-      if (!result) {
-        navigate('/login');
-      }
-    };
-    CheckTokenIsValid();
-  }, [navigate]);
+  const todoNums = todos.length;
 
-  //TodoInput
-  // 監聽input onchange狀態（TodoInput中的onChange觸發，更新父組件的狀態
-  const handelInput = (value) => {
+  const handleChange = (value) => {
     setInputValue(value);
   };
 
-  // 監聽input onAddTodo狀態（TodoInput中button的clink觸發，更新父組件的狀態）
   const handleAddTodo = async () => {
-    //確認inputValue是否有值
     if (inputValue.length === 0) {
       return;
     }
-    // 調用createTodoAPI
-    const data = await createTodo({
-      title: inputValue,
-      isDone: false,
-    });
 
-    //prevTodos 代表在調用 setTodos時的todos值
-    //調整調用createAPI，將返回的資料帶入更新
-    setTodos((prevTodos) => {
-      return [
-        //舊資料用展開運算式...
-        ...prevTodos,
-        //加入新資料格式
-        {
-          id: data.id,
-          title: data.title,
-          isDone: false,
-          isEdit: false,
-        },
-      ];
-    });
-    // 儲存後清空欄位
-    setInputValue('');
+    try {
+      const data = await createTodo({
+        title: inputValue,
+        isDone: false,
+      });
+
+      setTodos((prevTodos) => {
+        return [
+          ...prevTodos,
+          {
+            id: data.id,
+            title: data.title,
+            isDone: data.isDone,
+            isEdit: false,
+          },
+        ];
+      });
+
+      setInputValue('');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleKeyDown = async () => {
+    if (inputValue.length === 0) {
+      return;
+    }
+
+    try {
+      const data = await createTodo({
+        title: inputValue,
+        isDone: false,
+      });
+
+      setTodos((prevTodos) => {
+        return [
+          ...prevTodos,
+          {
+            id: data.id,
+            title: data.title,
+            isDone: data.isDone,
+            isEdit: false,
+          },
+        ];
+      });
+
+      setInputValue('');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  //TodoCollection
-  //確認項目是否被打勾完成
   const handleToggleDone = async (id) => {
-    //先找到目前這一筆資料
     const currentTodo = todos.find((todo) => todo.id === id);
-    //API更新目前這一筆
+
     try {
       await patchTodo({
         id,
@@ -100,8 +98,7 @@ const TodoPage = () => {
       console.error(error);
     }
   };
-
-  const handleOnChangeMode = ({ id, isEdit }) => {
+  const handleChangeMode = ({ id, isEdit }) => {
     setTodos((prevTodos) => {
       return prevTodos.map((todo) => {
         if (todo.id === id) {
@@ -110,12 +107,12 @@ const TodoPage = () => {
             isEdit,
           };
         }
+
         return { ...todo, isEdit: false };
       });
     });
   };
-
-  const handleOnSave = async ({ id, title }) => {
+  const handleSave = async ({ id, title }) => {
     try {
       await patchTodo({
         id,
@@ -124,12 +121,7 @@ const TodoPage = () => {
       setTodos((prevTodos) => {
         return prevTodos.map((todo) => {
           if (todo.id === id) {
-            return {
-              ...todo,
-              id,
-              title,
-              isEdit: false,
-            };
+            return { ...todo, title, isEdit: false };
           }
           return todo;
         });
@@ -138,35 +130,51 @@ const TodoPage = () => {
       console.error(error);
     }
   };
-
-  const handleOnDelete = async ({ id }) => {
+  const handleDelete = async (id) => {
     try {
-      await deleteTodo(id); //資料庫已經刪除
-      //如下是為了渲染畫面
+      await deleteTodo(id);
       setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     } catch (error) {
       console.error(error);
     }
   };
 
+  useEffect(() => {
+    const getTodosAsync = async () => {
+      try {
+        const todos = await getTodos();
+
+        setTodos(todos.map((todo) => ({ ...todo, isEdit: false })));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    getTodosAsync();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [navigate, isAuthenticated]);
+
   return (
     <div>
-      TodoPage
-      <Header />
+      <Header username={currentMember?.name} />
       <TodoInput
         inputValue={inputValue}
-        onChange={handelInput}
+        onChange={handleChange}
         onAddTodo={handleAddTodo}
-        onKeyDown={handleAddTodo}
+        onKeyDown={handleKeyDown}
       />
       <TodoCollection
         todos={todos}
+        onSave={handleSave}
         onToggleDone={handleToggleDone}
-        onSave={handleOnSave}
-        onDelete={handleOnDelete}
-        onChangeMode={handleOnChangeMode}
+        onChangeMode={handleChangeMode}
+        onDelete={handleDelete}
       />
-      <Footer itemCounts={todos.length} />
+      <Footer numOfTodos={todoNums} />
     </div>
   );
 };
