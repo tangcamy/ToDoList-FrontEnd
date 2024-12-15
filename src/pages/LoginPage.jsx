@@ -8,18 +8,21 @@ import { ACLogoIcon } from 'assets/images';
 import { AuthInput } from 'components';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
+import Swal from 'sweetalert2'; //引用提示訊息框框
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  //當入成功後導引導下個頁面/todos
   const navigate = useNavigate();
 
+  //defaultAuthContext名稱
   const { login, isAuthenticated } = useAuth();
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
+      // 按下 Enter 時觸發 handleClick
       handleClick();
     }
   };
@@ -43,6 +46,8 @@ const LoginPage = () => {
         timer: 1000,
         icon: 'success',
         showConfirmButton: false,
+        // text: 'Do you want to continue',//注意事項文字
+        // showConfirmButton: false, //是否要出現按鈕ok
       });
       return;
     }

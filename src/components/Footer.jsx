@@ -1,6 +1,5 @@
+import { useAuth } from 'contexts/AuthContext';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2'; //引用提示訊息框框
 
 const StyledFooter = styled.footer`
   display: flex;
@@ -33,25 +32,15 @@ const StyledButton = styled.button`
   }
 `;
 
-const Footer = ({ itemCounts }) => {
-  const navigate = useNavigate();
-  const handelLogoff = () => {
-    //登出表示localStorage的authToken移除，並將頁面切換到登入
-    localStorage.removeItem('authToken');
-    navigate('/login');
-    Swal.fire({
-      title: '已登出!',
-      icon: 'success',
-      showConfirmButton: false,
-      timer: 2000, //出現時間
-      position: 'top', //出現的位置
-    });
+const Footer = ({ numOfTodos }) => {
+  const { logout } = useAuth();
+  const handleClick = () => {
+    logout();
   };
-
   return (
     <StyledFooter>
-      <p>剩餘項目數： {itemCounts} </p>
-      <StyledButton onClick={handelLogoff}>登出</StyledButton>
+      <p>剩餘項目數： {numOfTodos}</p>
+      <StyledButton onClick={handleClick}>登出</StyledButton>
     </StyledFooter>
   );
 };

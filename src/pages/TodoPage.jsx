@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'contexts/AuthContext';
 
 const TodoPage = () => {
+  //todo頁面接收todoinput的value，並更新最新的值
   const [inputValue, setInputValue] = useState('');
   const [todos, setTodos] = useState([]);
   const navigate = useNavigate();
@@ -131,8 +132,10 @@ const TodoPage = () => {
     }
   };
   const handleDelete = async (id) => {
+    console.log(id);
     try {
-      await deleteTodo(id);
+      await deleteTodo(id); //資料庫已經刪除
+      //如下是為了渲染畫面
       setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     } catch (error) {
       console.error(error);
@@ -143,7 +146,6 @@ const TodoPage = () => {
     const getTodosAsync = async () => {
       try {
         const todos = await getTodos();
-
         setTodos(todos.map((todo) => ({ ...todo, isEdit: false })));
       } catch (error) {
         console.error(error);
@@ -152,8 +154,10 @@ const TodoPage = () => {
     getTodosAsync();
   }, []);
 
+  //defaultAuthContext名稱
   useEffect(() => {
     if (!isAuthenticated) {
+      //假如沒有的話，引導到login
       navigate('/login');
     }
   }, [navigate, isAuthenticated]);
@@ -174,6 +178,7 @@ const TodoPage = () => {
         onChangeMode={handleChangeMode}
         onDelete={handleDelete}
       />
+
       <Footer numOfTodos={todoNums} />
     </div>
   );

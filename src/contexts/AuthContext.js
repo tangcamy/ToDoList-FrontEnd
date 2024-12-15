@@ -7,9 +7,9 @@ import { useLocation } from 'react-router-dom';
 const defaultAuthContext = {
   isAuthenticated: false, //使用者是否登入判斷依據，預設false,若取得後端有效憑證則切換true
   currentMember: null, //當前使用者相關資料,預設null，成工登入後就會有使用者資料
-  register: null, //註冊方法
-  login: null, //登入方法
-  logout: null, //登出方法
+  register: null, //註冊方法API
+  login: null, //登入方法API
+  logout: null, //登出方法API
 };
 
 // import套件，定義文件並將預設值帶入
@@ -17,6 +17,7 @@ const AuthContext = createContext(defaultAuthContext);
 // 頁面如何使用：輸出useContext AuthContext (建立的文件）
 export const useAuth = () => useContext(AuthContext);
 // 管理文件狀態Provider操作功能
+
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, SetIsAuthenticated] = useState(false);
   // 透過解析Token來回傳一些資料
